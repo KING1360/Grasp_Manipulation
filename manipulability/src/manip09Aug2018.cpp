@@ -1,6 +1,5 @@
 #include <ros/ros.h>
 #include "std_msgs/String.h"
-#include <math.h>
 
 #include <boost/scoped_ptr.hpp>
 #include <kdl/chain.hpp>
@@ -13,11 +12,6 @@
 #include <sensor_msgs/JointState.h>
 #include <kdl/chainfksolver.hpp>
 #include <kdl/frames_io.hpp>
-
-#include <kdl/chainiksolverpos_nr_jl.hpp>
-#include <kdl/chainfksolverpos_recursive.hpp>
-#include <kdl/chainiksolverpos_nr.hpp>
-
 #include <stdio.h>
 #include <iostream>
 #include <Eigen/LU>
@@ -29,21 +23,7 @@
 using namespace std;
 using namespace KDL;
 using namespace Eigen;
-#include <trac_ik/trac_ik.hpp>
 
-
-
-class PG_obj {
-    int width, height;
-  public:
-    void set_values (int,int);
-    int area() {return width*height;}
-};
-
-void PG_obj::set_values (int x, int y) {
-  width = x;
-  height = y;
-}
 
 int main(int argc, char **argv)
 {
@@ -80,7 +60,7 @@ int main(int argc, char **argv)
   {
     ROS_INFO("Got the tree!");
   }
-  KDL::Chain chain, chain_ee_b;
+  KDL::Chain chain;
   float myinput;
   scanf ("%e",&myinput);
 
@@ -133,30 +113,48 @@ int main(int argc, char **argv)
   std::cout << "\n No. of rows of Jacobian = \n"<<J.rows() << "\n No. of columns of Jacobian = \n"<<J.columns() << ";\n \n"<<std::endl;
    
 
-  // int m = 20; 
-  // MatrixXf jointpos(nj, m);
+   
 
-  // for (unsigned int i = 0 ; i < nj ; i++)
+
+
+
+  
+
+
+  // Eigen::MatrixXf J_T_(7,6), J_T__(7,6), JJ_T(6,7);
+  // //J_T_ = J_.data; //J__(6,chain.getNrOfJoints());
+ 
+
+  // for (unsigned int i = 0 ; i < chain.getNrOfJoints() ; i++)
   //   {
-  //     for (unsigned int j = 0 ; j < m ; j++){
-  //       jointpos(i,j) = -M_PI/2 + j * M_PI/m;
-  //     }
-  //   }
-
-  // for (unsigned int i = 0 ; i < nj ; i++)
+  //   for (unsigned int j = 0 ; j < 6 ; j++)
+  //   //J__(i,j) = J_.data(j,i) ;
+  //   //  a = J_.data(j,i);
+  //   //J__(j,i) = 
+  //   //J_T_(i,j) = 0;
+  // if (i == 0){
+  //   J_T_(i,j) = 1; 
+  // }
+  //   else 
   //   {
-  //     for (unsigned int j = 0 ; j < m ; j++){
-  //       for (unsigned int j = 0 ; j < m ; j++){
-  //       for (unsigned int j = 0 ; j < m ; j++){
-  //       for (unsigned int j = 0 ; j < m ; j++){
-  //       for (unsigned int j = 0 ; j < m ; j++){
-  //       for (unsigned int j = 0 ; j < m ; j++){
-  //       for (unsigned int j = 0 ; j < m ; j++){
-  //         jointpos(i,j) = -M_PI/2 + j * M_PI/m;
-  //       }}}}}}}
+  //   J_T_(i,j) = 0;
   //   }
-  // std::cout << "\n  jointpositions  = \n"<< jointpos <<std::endl;
+  // }
+  // J_T__ =   J_T_.transpose();
+  // std::cout << "\n Original matrix J_T_  = \n"<< J_T_<< std::endl;
+  // std::cout << "\n Tanspose of J_T_  = \n"<< J_T__<< std::endl;
 
+
+  // MatrixXf JJ_T; 
+
+  // JJ_T = J * J_T;
+
+
+  // std::cout << "\n  J J'  = \n"<< JJ_T<<std::endl;
+  // std::cout << "\n Transpose Jacobian  = \n"<< J.data.transpose()<<std::endl;
+
+
+  // MatrixXd J_T_ = ;
 
   MatrixXd JJ_T =   J.data * J.data.transpose();
 
@@ -167,38 +165,91 @@ int main(int argc, char **argv)
   std::cout << "\n EigenValue  = \n"<< es.eigenvalues() <<std::endl;
 
 
-// Create solver based on kinematic chain
-// ChainFkSolverPos_recursive fk_solver = ChainFkSolverPos_recursive(chain);
-//Creation of the solvers:
-//Chain chain1;
-ChainFkSolverPos_recursive fksolver1(chain);//Forward position solver
-ChainIkSolverVel_pinv iksolver1v(chain);//Inverse velocity solver
-ChainIkSolverPos_NR iksolver1(chain,fksolver1,iksolver1v,100,1e-6);//Maximum 100 iterations, stop at accuracy 1e-6
- 
- //Creation of jntarrays:
-JntArray q(chain.getNrOfJoints());
-JntArray q_init(chain.getNrOfJoints());
 
 
-//Set destination frame
-Rotation r = Rotation::Identity();
-Vector v(-0.2,    0.275989,    0.398982);
-Frame F_dest(r, v);
- 
-int ret = iksolver1.CartToJnt(q_init,F_dest,q);
 
-// KDL::ChainIkSolverPos_NR_JL ik_solver(KDL::Chain chain, KDL::JntArray lower_joint_limits, KDL::JntArray upper_joint_limits, fk_solver, vik_solver, int num_iterations, double error);
 
-// TRAC_IK::TRAC_IK ik_solver(Chain chain1, KDL::JntArray lower_joint_limits, KDL::JntArray upper_joint_limits, double timeout_in_secs=0.005, double error=1e-5, TRAC_IK::SolveType type=TRAC_IK::Speed);  
 
-//TRAC_IK::TRAC_IK ik_solver(string arm_base_link, string arm_ee_link, string URDF_param="robot_desc_string", double timeout_in_secs=0.005, double error=1e-5, TRAC_IK::SolveType type=TRAC_IK::Speed);
-  // ik_solver.SetSolveType (SolveType _type)
-// int rc = ik_solver.CartToJnt(KDL::JntArray joint_seed = jointpositions, KDL::Frame desired_end_effector_pose = [.5 0 0 0 0 0 1], KDL::JntArray& return_joints);
-  KDL::Frame position1;
-  fksolver1.JntToCart(jointpositions,position1);
-  std::cout << "\n position1  = \n"<< position1<<std::endl;
-  std::cout << "\n q  = \n"<< q(0,3) <<std::endl;
+  
 
+
+
+ //  // KDL class and functions
+ //  KDL::Vector v1(1,2,1);
+ //  KDL::Vector v2(v1);
+ //  KDL::Vector v3= KDL::Vector::Zero();
+ //  cout<< v1.x()<<"\n Here you go!\n";
+ //  v2 = 2*v1;
+ //  //v1 = v1/2;
+ //  double a=dot(v1,v2);
+
+ //  cout<<"\n v1.x ="<< v1.x()<<"; v1.y ="<< v1.y()<<" v1.z ="<< v1.z();
+ //  cout<<"\n v2.x ="<< v2.x()<<"; v2.y ="<< v2.y()<<" v2.z ="<< v2.z();
+ //  cout<<"\n A= !\n"<< a;
+
+ //  cout<< v2.x()<<"\n Here you go2222222222!\n"<<"\n";
+ //  KDL::Rotation r1 = KDL::Rotation::Identity();
+ //  cout<<"\n r1 ="<< r1(1,1);
+ //  KDL::Rotation r3=KDL::Rotation::RotX(.2);
+ //  KDL::Rotation r6=KDL::Rotation::RPY(.2,1,1);
+ //  r1.SetInverse();
+ //  KDL::Rotation r7 = r1.Inverse();
+ //  KDL::Vector v5 = r1*v1;
+
+ //  cout<<"\n V511 ="<< v5(0);cout<<"; r12 ="<< v2(1);cout<<"; r13 ="<< v2(2);
+
+ //  KDL::Rotation r5 = r1*r3;
+ //  KDL::Rotation r2 = r5.Inverse();
+ //  cout<<"\n r11 ="<< r2(0,0);cout<<"; r12 ="<< r2(1,0);cout<<"; r13 ="<< r2(2,0);
+ //  cout<<"\n r21 ="<< r2(0,1);cout<<"; r22 ="<< r2(1,1);cout<<"; r23 ="<< r2(2,1);
+ //  cout<<"\n r31 ="<< r2(0,2);cout<<"; r32 ="<< r2(1,2);cout<<"; r33 ="<< r2(2,2)<<"\n";
+
+
+ //  //FRAMES
+ //  KDL::Frame f1;
+ //  f1 = KDL::Frame::Identity();
+ //  KDL::Frame f2(r5,v1);
+ //  f2 = f1.Inverse();
+
+ //  cout<<"\n f11 ="<< f2(0,0);cout<<"; r12 ="<< f2(1,0);cout<<"; f13 ="<< f2(2,0);cout<<"; f14 ="<< f2(3,0);
+ //  cout<<"\n f21 ="<< f2(0,1);cout<<"; r22 ="<< f2(1,1);cout<<"; f23 ="<< f2(2,1);cout<<"; f23 ="<< f2(3,1);
+ //  cout<<"\n f31 ="<< f2(0,2);cout<<"; r32 ="<< f2(1,2);cout<<"; f33 ="<< f2(2,2);cout<<"; f33 ="<< f2(3,2);
+ //  cout<<"\n f31 ="<< f2(0,3);cout<<"; r32 ="<< f2(1,3);cout<<"; f33 ="<< f2(2,3);cout<<"; f33 ="<< f2(3,3)<<"\n";
+ // // cout<<"\n f31 ="<< f2(0,3);cout<<"; r32 ="<< f2(1,3);cout<<"; f33 ="<< f2(2,3);cout<<"; f33 ="<< f2(3,3);<<"\n";
+ //  cout<< "\nF2.M = "<<f2.M(1,1);cout<< "\nF2.P = "<<f2.p(1); 
+ //  Frame f3 = f1*f2;
+
+ //  Twist t1;
+ //  Twist t2(v1,v2);
+ //  Twist t3 = Twist::Zero();
+
+ //  double vx = t2.vel.x();
+ //  cout<< "\n VX = "<< vx <<"\n";
+
+
+
+ //  Wrench w1(v1,v2);
+ //  Wrench w2 = Wrench::Zero();
+  
+ //  Wrench w3 = w1+w2;
+
+ //  double wx = w3.force.x();
+ //  cout<< "\n WX = "<< wx <<"\n";
+
+
+
+ //  std::string s1;
+ //  n.param<std::string>("my_Pa", s1, "Hey this is it!");
+ //  ROS_INFO("Got it! %s", s1.c_str());
+ //  std::string s;
+  
+  /*
+  if (n.getParam("my_Pa", s) ) {
+    ROS_INFO("Got it! %s", s.c_str());
+  }
+  else{
+    ROS_ERROR("Failed haha!!!");
+  }*/
   int count = 0;
 
   while (ros::ok())
